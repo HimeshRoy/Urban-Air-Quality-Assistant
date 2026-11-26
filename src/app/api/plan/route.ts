@@ -9,7 +9,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const limit = checkRateLimit(`plan:${ip}`, {
+  const limit = await checkRateLimit(`plan:${ip}`, {
     maxRequests: 10,
     windowMs: 60_000,
   });
@@ -74,21 +74,27 @@ export async function POST(request: Request) {
 
     if (error instanceof AiConfigError) {
       return NextResponse.json(
-        { error: "AI assistant is not configured yet. Please set GEMINI_API_KEY." },
-        { status: 503 }
+        {
+          error:
+            "AI assistant is not configured yet. Please set GEMINI_API_KEY.",
+        },
+        { status: 503 },
       );
     }
 
     if (error instanceof AiGenerationError) {
       return NextResponse.json(
-        { error: "Could not generate a valid action plan right now. Please try again." },
-        { status: 502 }
+        {
+          error:
+            "Could not generate a valid action plan right now. Please try again.",
+        },
+        { status: 502 },
       );
     }
 
     return NextResponse.json(
       { error: "Unexpected server error while generating your plan." },
-      { status: 500 }
+      { status: 500 },
     );
-}
+  }
 }

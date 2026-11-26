@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type AqiLevel =
   | "good"
   | "moderate"
@@ -40,6 +42,52 @@ export interface AirQualityReport {
   safestWindow: string;
   hourlyForecast: HourlyPoint[];
 }
+
+const GeocodingResponseSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        admin1: z.string().optional(),
+        country: z.string().min(1),
+        latitude: z.number().finite().min(-90).max(90),
+        longitude: z.number().finite().min(-180).max(180),
+        timezone: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
+const AirQualityResponseSchema = z.object({
+  timezone: z.string().optional(),
+
+  current: z.object({
+    time: z.string().min(1),
+    us_aqi: z.number().finite().min(0).max(1000),
+    pm2_5: z.number().finite().min(0).max(2000),
+    pm10: z.number().finite().min(0).max(2000),
+    nitrogen_dioxide: z.number().finite().min(0).optional(),
+    ozone: z.number().finite().min(0).optional(),
+  }),
+
+  hourly: z
+    .object({
+      time: z.array(z.string().min(1)),
+      us_aqi: z.array(z.number().finite().min(0).max(1000)),
+      pm2_5: z.array(z.number().finite().min(0).max(2000)),
+    })
+    .superRefine((data, ctx) => {
+      if (
+        data.time.length !== data.us_aqi.length ||
+        data.time.length !== data.pm2_5.length
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Hourly forecast arrays have mismatched lengths.",
+        });
+      }
+    }),
+});
 
 export class CityNotFoundError extends Error {
   constructor(city: string) {
@@ -113,67 +161,60 @@ export function classifyUsAqi(usAqi: number): AqiSeverity {
  * Finds the contiguous 3-hour window with the lowest average PM2.5 concentration
  * so families know when brief ventilation or essential errands carry the least exposure.
  */
+
 export function findSafestWindow(hourly: HourlyPoint[]): string {
-  if (hourly.length === 0) {
-    return "Afternoon hours (typically lowest inversion trapping)";
-  }
-
   if (hourly.length < 3) {
-    const best = hourly.reduce(
-      (min, cur) => (cur.pm25 < min.pm25 ? cur : min),
-      hourly[0],
-    );
-    return `${best.hourLabel} (PM2.5: ${Math.round(best.pm25)} µg/m³)`;
+    return "No reliable 3-hour window available";
   }
 
-  let bestStartIdx = 0;
+  const getTimestamp = (time: string): number => {
+    const hasTimezone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(time);
+    return Date.parse(hasTimezone ? time : `${time}Z`);
+  };
+
+  let bestStartIdx = -1;
   let lowestAvgPm25 = Number.POSITIVE_INFINITY;
 
   for (let i = 0; i <= hourly.length - 3; i++) {
+    const first = getTimestamp(hourly[i].time);
+    const second = getTimestamp(hourly[i + 1].time);
+    const third = getTimestamp(hourly[i + 2].time);
+
+    const oneHour = 60 * 60 * 1000;
+
+    // Only consider genuinely consecutive hourly observations.
+    if (
+      !Number.isFinite(first) ||
+      !Number.isFinite(second) ||
+      !Number.isFinite(third) ||
+      second - first !== oneHour ||
+      third - second !== oneHour
+    ) {
+      continue;
+    }
+
     const avgPm25 =
       (hourly[i].pm25 + hourly[i + 1].pm25 + hourly[i + 2].pm25) / 3;
+
     if (avgPm25 < lowestAvgPm25) {
       lowestAvgPm25 = avgPm25;
       bestStartIdx = i;
     }
   }
 
+  if (bestStartIdx === -1) {
+    return "No reliable 3-hour window available";
+  }
+
   const startLabel = hourly[bestStartIdx].hourLabel;
   const endLabel = hourly[bestStartIdx + 2].hourLabel;
+
   return `${startLabel} – ${endLabel} (avg PM2.5: ${Math.round(lowestAvgPm25)} µg/m³)`;
 }
 
 function extractHourLabel(isoTimestamp: string): string {
   const timePart = isoTimestamp.split("T")[1];
   return timePart ? timePart.slice(0, 5) : isoTimestamp;
-}
-
-interface GeocodingApiResponse {
-  results?: Array<{
-    name: string;
-    admin1?: string;
-    country: string;
-    latitude: number;
-    longitude: number;
-    timezone?: string;
-  }>;
-}
-
-interface AirQualityApiResponse {
-  timezone?: string;
-  current?: {
-    time: string;
-    us_aqi: number;
-    pm2_5: number;
-    pm10: number;
-    nitrogen_dioxide?: number;
-    ozone?: number;
-  };
-  hourly?: {
-    time: string[];
-    us_aqi: number[];
-    pm2_5: number[];
-  };
 }
 
 export async function fetchCityAirQuality(
@@ -195,8 +236,16 @@ export async function fetchCityAirQuality(
     );
   }
 
-  const geoData = (await geoRes.json()) as GeocodingApiResponse;
-  const place = geoData.results?.[0];
+  const geoJson: unknown = await geoRes.json();
+  const geoParsed = GeocodingResponseSchema.safeParse(geoJson);
+
+  if (!geoParsed.success) {
+    throw new UpstreamWeatherError(
+      "Invalid location data received from geocoding service.",
+    );
+  }
+
+  const place = geoParsed.data.results?.[0];
 
   if (!place) {
     throw new CityNotFoundError(city);
@@ -222,13 +271,16 @@ export async function fetchCityAirQuality(
     );
   }
 
-  const aqData = (await aqRes.json()) as AirQualityApiResponse;
+  const aqJson: unknown = await aqRes.json();
+  const aqParsed = AirQualityResponseSchema.safeParse(aqJson);
 
-  if (!aqData.current) {
+  if (!aqParsed.success) {
     throw new UpstreamWeatherError(
-      "Incomplete air quality telemetry returned for this location.",
+      "Invalid or incomplete air quality telemetry returned by the service.",
     );
   }
+
+  const aqData = aqParsed.data;
 
   const times = aqData.hourly?.time ?? [];
   const aqis = aqData.hourly?.us_aqi ?? [];

@@ -36,16 +36,30 @@ describe("findSafestWindow", () => {
     );
   });
 
-  it("returns a sensible fallback when hourly telemetry is empty", () => {
-    expect(findSafestWindow([])).toContain("Afternoon hours");
+  it("returns no reliable window when hourly telemetry is empty", () => {
+    expect(findSafestWindow([])).toBe("No reliable 3-hour window available");
   });
 
-  it("handles fewer than 3 hourly points without throwing", () => {
+  it("rejects forecast entries with missing hours", () => {
+    const hourly: HourlyPoint[] = [
+      { time: "2026-11-25T08:00", hourLabel: "08:00", usAqi: 200, pm25: 150 },
+      { time: "2026-11-25T10:00", hourLabel: "10:00", usAqi: 180, pm25: 100 },
+      { time: "2026-11-25T11:00", hourLabel: "11:00", usAqi: 160, pm25: 80 },
+    ];
+
+    expect(findSafestWindow(hourly)).toBe(
+      "No reliable 3-hour window available",
+    );
+  });
+
+  it("does not claim a 3-hour window with fewer than three points", () => {
     const shortSeries: HourlyPoint[] = [
       { time: "2026-11-25T14:00", hourLabel: "14:00", usAqi: 120, pm25: 44 },
       { time: "2026-11-25T15:00", hourLabel: "15:00", usAqi: 140, pm25: 55 },
     ];
 
-    expect(findSafestWindow(shortSeries)).toBe("14:00 (PM2.5: 44 µg/m³)");
+    expect(findSafestWindow(shortSeries)).toBe(
+      "No reliable 3-hour window available",
+    );
   });
 });

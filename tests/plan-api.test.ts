@@ -1,10 +1,27 @@
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AirQualityPlan, PlanRequest } from "@/lib/schemas";
 
-const mockGenerateAirQualityPlan = vi.fn();
+// Mock functions must be declared before vi.mock factories use them.
+const {
+  mockCheckRateLimit,
+  mockGenerateAirQualityPlan,
+} = vi.hoisted(() => ({
+  mockCheckRateLimit: vi.fn(),
+  mockGenerateAirQualityPlan: vi.fn(),
+}));
+
+vi.mock("@/lib/rateLimit", () => ({
+  getClientIp: (request: Request) =>
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown",
+
+  checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...args),
+}));
 
 vi.mock("@/lib/genai", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/genai")>();
+
   return {
     ...actual,
     generateAirQualityPlan: (...args: unknown[]) =>
@@ -62,12 +79,14 @@ const VALID_PLAN: AirQualityPlan = {
 };
 
 let ipCounter = 1;
+
 function makeRequest(
   body: unknown,
   contentType = "application/json",
   ip?: string,
-) {
+): Request {
   const clientIp = ip ?? `10.0.0.${ipCounter++}`;
+
   return new Request("http://localhost:3000/api/plan", {
     method: "POST",
     headers: {
@@ -81,6 +100,14 @@ function makeRequest(
 describe("POST /api/plan", () => {
   beforeEach(() => {
     mockGenerateAirQualityPlan.mockReset();
+    mockCheckRateLimit.mockReset();
+
+    // Allow requests by default. Individual tests can override this.
+    mockCheckRateLimit.mockResolvedValue({
+      allowed: true,
+      remaining: 9,
+      resetInMs: 60_000,
+    });
   });
 
   it("returns 200 with a validated plan on a valid request", async () => {
@@ -91,6 +118,7 @@ describe("POST /api/plan", () => {
     });
 
     const response = await POST(makeRequest(VALID_PAYLOAD));
+
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
 
@@ -100,14 +128,17 @@ describe("POST /api/plan", () => {
 
   it("returns 415 when Content-Type is not application/json", async () => {
     const response = await POST(makeRequest("plain text", "text/plain"));
+
     expect(response.status).toBe(415);
   });
 
   it("returns 400 on malformed JSON or invalid schema", async () => {
     const badJsonRes = await POST(makeRequest("{not-valid-json"));
+
     expect(badJsonRes.status).toBe(400);
 
     const badSchemaRes = await POST(makeRequest({ profile: {} }));
+
     expect(badSchemaRes.status).toBe(400);
   });
 
@@ -115,13 +146,17 @@ describe("POST /api/plan", () => {
     mockGenerateAirQualityPlan.mockRejectedValueOnce(
       new AiConfigError("Missing key"),
     );
+
     const configRes = await POST(makeRequest(VALID_PAYLOAD));
+
     expect(configRes.status).toBe(503);
 
     mockGenerateAirQualityPlan.mockRejectedValueOnce(
       new AiGenerationError("Malformed model output"),
     );
+
     const genRes = await POST(makeRequest(VALID_PAYLOAD));
+
     expect(genRes.status).toBe(502);
   });
 
@@ -133,16 +168,33 @@ describe("POST /api/plan", () => {
     });
 
     const fixedIp = "192.168.99.99";
+
+    // First ten requests are allowed.
+    mockCheckRateLimit.mockResolvedValue({
+      allowed: true,
+      remaining: 9,
+      resetInMs: 60_000,
+    });
+
     for (let i = 0; i < 10; i++) {
-      const res = await POST(
+      const response = await POST(
         makeRequest(VALID_PAYLOAD, "application/json", fixedIp),
       );
-      expect(res.status).toBe(200);
+
+      expect(response.status).toBe(200);
     }
+
+    // The next request is blocked.
+    mockCheckRateLimit.mockResolvedValueOnce({
+      allowed: false,
+      remaining: 0,
+      resetInMs: 30_000,
+    });
 
     const blocked = await POST(
       makeRequest(VALID_PAYLOAD, "application/json", fixedIp),
     );
+
     expect(blocked.status).toBe(429);
     expect(blocked.headers.get("retry-after")).toBeTruthy();
   });

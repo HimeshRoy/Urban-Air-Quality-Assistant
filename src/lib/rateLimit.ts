@@ -1,7 +1,5 @@
-interface RateLimitBucket {
-  count: number;
-  resetAt: number;
-}
+import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
 
 export interface RateLimitConfig {
   maxRequests: number;
@@ -14,59 +12,61 @@ export interface RateLimitResult {
   resetInMs: number;
 }
 
-const buckets = new Map<string, RateLimitBucket>();
-const MAX_BUCKETS = 1000;
+const redis = Redis.fromEnv();
 
-function pruneExpiredBuckets(now: number): void {
-  if (buckets.size <= MAX_BUCKETS) return;
-  for (const [key, bucket] of buckets.entries()) {
-    if (bucket.resetAt <= now) {
-      buckets.delete(key);
-    }
+const limiters = new Map<string, Ratelimit>();
+
+function getLimiter(config: RateLimitConfig): Ratelimit {
+  const key = `${config.maxRequests}:${config.windowMs}`;
+
+  let limiter = limiters.get(key);
+
+  if (!limiter) {
+    limiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(
+        config.maxRequests,
+        `${config.windowMs} ms`,
+      ),
+      prefix: "vayuguard:ratelimit",
+    });
+
+    limiters.set(key, limiter);
   }
+
+  return limiter;
 }
 
-export function checkRateLimit(
+export async function checkRateLimit(
   identifier: string,
-  config: RateLimitConfig = { maxRequests: 20, windowMs: 60_000 },
-): RateLimitResult {
-  const now = Date.now();
-  pruneExpiredBuckets(now);
+  config: RateLimitConfig = {
+    maxRequests: 20,
+    windowMs: 60_000,
+  },
+): Promise<RateLimitResult> {
+  const limiter = getLimiter(config);
+  const result = await limiter.limit(identifier);
 
-  const existing = buckets.get(identifier);
-
-  if (!existing || existing.resetAt <= now) {
-    buckets.set(identifier, {
-      count: 1,
-      resetAt: now + config.windowMs,
-    });
-    return {
-      allowed: true,
-      remaining: config.maxRequests - 1,
-      resetInMs: config.windowMs,
-    };
-  }
-
-  if (existing.count >= config.maxRequests) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetInMs: existing.resetAt - now,
-    };
-  }
-
-  existing.count += 1;
   return {
-    allowed: true,
-    remaining: config.maxRequests - existing.count,
-    resetInMs: existing.resetAt - now,
+    allowed: result.success,
+    remaining: result.remaining,
+    resetInMs: Math.max(0, result.reset - Date.now()),
   };
 }
 
 export function getClientIp(request: Request): string {
+  // Vercel overwrites this header with the connecting client's IP.
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
+
+  const clientIp = forwarded?.split(",")[0]?.trim();
+
+  if (clientIp) {
+    return clientIp;
   }
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+
+  if (process.env.NODE_ENV !== "production") {
+    return request.headers.get("x-real-ip")?.trim() || "local";
+  }
+
+  return "unknown";
 }

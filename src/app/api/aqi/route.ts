@@ -9,7 +9,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function GET(request: Request) {
   const ip = getClientIp(request);
-  const limit = checkRateLimit(`aqi:${ip}`, {
+  const limit = await checkRateLimit(`aqi:${ip}`, {
     maxRequests: 30,
     windowMs: 60_000,
   });
