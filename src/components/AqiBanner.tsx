@@ -22,50 +22,69 @@ interface AqiBannerProps {
 
 const SEVERITY_STYLES: Record<
   AqiLevel,
-  { badge: string; border: string; bar: string; labelPrefix: string }
+  {
+    badge: string;
+    border: string;
+    bar: string;
+    labelPrefix: string;
+    surface: string;
+    text: string;
+  }
 > = {
   good: {
-    badge: "bg-emerald-950 text-emerald-300 border-emerald-700/60",
-    border: "border-emerald-800/50",
-    bar: "bg-emerald-400",
+    badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    border: "border-emerald-200",
+    bar: "bg-emerald-500",
     labelPrefix: "Safe",
+    surface: "bg-emerald-50",
+    text: "text-emerald-700",
   },
   moderate: {
-    badge: "bg-amber-950 text-amber-200 border-amber-700/60",
-    border: "border-amber-800/50",
-    bar: "bg-amber-400",
+    badge: "border-amber-200 bg-amber-50 text-amber-700",
+    border: "border-amber-200",
+    bar: "bg-amber-500",
     labelPrefix: "Fair",
+    surface: "bg-amber-50",
+    text: "text-amber-700",
   },
   sensitive: {
-    badge: "bg-orange-950 text-orange-200 border-orange-700/60",
-    border: "border-orange-800/50",
-    bar: "bg-orange-400",
+    badge: "border-orange-200 bg-orange-50 text-orange-700",
+    border: "border-orange-200",
+    bar: "bg-orange-500",
     labelPrefix: "Caution",
+    surface: "bg-orange-50",
+    text: "text-orange-700",
   },
   unhealthy: {
-    badge: "bg-rose-950 text-rose-200 border-rose-700/60",
-    border: "border-rose-800/50",
+    badge: "border-rose-200 bg-rose-50 text-rose-700",
+    border: "border-rose-200",
     bar: "bg-rose-500",
     labelPrefix: "Unhealthy",
+    surface: "bg-rose-50",
+    text: "text-rose-700",
   },
   very_unhealthy: {
-    badge: "bg-fuchsia-950 text-fuchsia-200 border-fuchsia-700/60",
-    border: "border-fuchsia-800/50",
+    badge: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
+    border: "border-fuchsia-200",
     bar: "bg-fuchsia-500",
     labelPrefix: "Very Poor",
+    surface: "bg-fuchsia-50",
+    text: "text-fuchsia-700",
   },
   hazardous: {
-    badge: "bg-red-950 text-red-100 border-red-600/80",
-    border: "border-red-700/70",
+    badge: "border-red-200 bg-red-50 text-red-700",
+    border: "border-red-200",
     bar: "bg-red-500",
     labelPrefix: "Severe",
+    surface: "bg-red-50",
+    text: "text-red-700",
   },
 };
 
 function getBarColorByAqi(aqi: number): string {
-  if (aqi <= 50) return "bg-emerald-400";
-  if (aqi <= 100) return "bg-amber-400";
-  if (aqi <= 150) return "bg-orange-400";
+  if (aqi <= 50) return "bg-emerald-500";
+  if (aqi <= 100) return "bg-amber-500";
+  if (aqi <= 150) return "bg-orange-500";
   if (aqi <= 200) return "bg-rose-500";
   if (aqi <= 300) return "bg-fuchsia-500";
   return "bg-red-500";
@@ -82,9 +101,11 @@ function getAqiShortWord(aqi: number): string {
 
 function formatHour12(hourLabel: string): string {
   const hourNum = Number.parseInt(hourLabel.split(":")[0] ?? "0", 10);
+
   if (Number.isNaN(hourNum)) return hourLabel;
   if (hourNum === 0) return "12 AM";
   if (hourNum === 12) return "12 PM";
+
   return hourNum > 12 ? `${hourNum - 12} PM` : `${hourNum} AM`;
 }
 
@@ -96,18 +117,20 @@ function getPollutantStatus(
   if (value >= highAt) {
     return {
       label: "High",
-      className: "bg-rose-950 text-rose-300 border-rose-800/60",
+      className: "border-rose-200 bg-rose-50 text-rose-700",
     };
   }
+
   if (value >= moderateAt) {
     return {
       label: "Moderate",
-      className: "bg-amber-950 text-amber-200 border-amber-800/60",
+      className: "border-amber-200 bg-amber-50 text-amber-700",
     };
   }
+
   return {
     label: "Low",
-    className: "bg-emerald-950 text-emerald-300 border-emerald-800/60",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
   };
 }
 
@@ -115,39 +138,46 @@ function getFamilyVerdict(level: AqiLevel) {
   switch (level) {
     case "good":
       return {
-        outdoor: { status: "Safe Outdoors", tone: "text-emerald-300" },
-        windows: { status: "Open Freely", tone: "text-emerald-300" },
-        mask: { status: "Not Needed", tone: "text-emerald-300" },
-        purifier: { status: "Optional", tone: "text-zinc-300" },
+        outdoor: { status: "Safe Outdoors", tone: "text-emerald-700" },
+        windows: { status: "Open Freely", tone: "text-emerald-700" },
+        mask: { status: "Not Needed", tone: "text-emerald-700" },
+        purifier: { status: "Optional", tone: "text-[#68756D]" },
       };
+
     case "moderate":
       return {
-        outdoor: { status: "OK for Most", tone: "text-amber-300" },
-        windows: { status: "Open in Afternoon", tone: "text-amber-300" },
-        mask: { status: "Sensitive Groups", tone: "text-amber-300" },
-        purifier: { status: "Low / Sleep Mode", tone: "text-zinc-300" },
+        outdoor: { status: "OK for Most", tone: "text-amber-700" },
+        windows: { status: "Open in Afternoon", tone: "text-amber-700" },
+        mask: { status: "Sensitive Groups", tone: "text-amber-700" },
+        purifier: { status: "Low / Sleep Mode", tone: "text-[#68756D]" },
       };
+
     case "sensitive":
       return {
-        outdoor: { status: "Limit Heavy Exercise", tone: "text-orange-300" },
-        windows: { status: "Brief Airing Only", tone: "text-orange-300" },
-        mask: { status: "Recommended (N95)", tone: "text-orange-300" },
-        purifier: { status: "Run on Medium", tone: "text-orange-300" },
+        outdoor: {
+          status: "Limit Heavy Exercise",
+          tone: "text-orange-700",
+        },
+        windows: { status: "Brief Airing Only", tone: "text-orange-700" },
+        mask: { status: "Recommended (N95)", tone: "text-orange-700" },
+        purifier: { status: "Run on Medium", tone: "text-orange-700" },
       };
+
     case "unhealthy":
       return {
-        outdoor: { status: "Move Indoors", tone: "text-rose-300" },
-        windows: { status: "Keep Closed", tone: "text-rose-300" },
-        mask: { status: "Wear N95 Outside", tone: "text-rose-300" },
-        purifier: { status: "Run Continuously", tone: "text-rose-300" },
+        outdoor: { status: "Move Indoors", tone: "text-rose-700" },
+        windows: { status: "Keep Closed", tone: "text-rose-700" },
+        mask: { status: "Wear N95 Outside", tone: "text-rose-700" },
+        purifier: { status: "Run Continuously", tone: "text-rose-700" },
       };
+
     case "very_unhealthy":
     case "hazardous":
       return {
-        outdoor: { status: "Avoid Going Out", tone: "text-red-300" },
-        windows: { status: "Seal Drafts Tight", tone: "text-red-300" },
-        mask: { status: "Mandatory N95", tone: "text-red-300" },
-        purifier: { status: "Max / DIY Filter", tone: "text-red-300" },
+        outdoor: { status: "Avoid Going Out", tone: "text-red-700" },
+        windows: { status: "Seal Drafts Tight", tone: "text-red-700" },
+        mask: { status: "Mandatory N95", tone: "text-red-700" },
+        purifier: { status: "Max / DIY Filter", tone: "text-red-700" },
       };
   }
 }
@@ -163,9 +193,11 @@ function getTimeOfDaySummary(hourly: HourlyPoint[]) {
   return buckets.map((bucket) => {
     const matching = hourly.filter((pt) => {
       const h = Number.parseInt(pt.hourLabel.split(":")[0] ?? "-1", 10);
+
       if (bucket.start <= bucket.end) {
         return h >= bucket.start && h <= bucket.end;
       }
+
       return h >= bucket.start || h <= bucket.end;
     });
 
@@ -176,6 +208,7 @@ function getTimeOfDaySummary(hourly: HourlyPoint[]) {
     const avgAqi = Math.round(
       matching.reduce((sum, pt) => sum + pt.usAqi, 0) / matching.length,
     );
+
     return { ...bucket, avgAqi };
   });
 }
@@ -184,9 +217,11 @@ function SeverityIcon({ level }: { level: AqiLevel }) {
   if (level === "good") {
     return <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />;
   }
+
   if (level === "moderate" || level === "sensitive") {
     return <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />;
   }
+
   return <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />;
 }
 
@@ -197,6 +232,7 @@ export function AqiBanner({ report }: AqiBannerProps) {
 
   const style = SEVERITY_STYLES[report.severity.level];
   const verdict = getFamilyVerdict(report.severity.level);
+
   const locationLabel = [
     report.location.name,
     report.location.region,
@@ -205,8 +241,7 @@ export function AqiBanner({ report }: AqiBannerProps) {
     .filter(Boolean)
     .join(", ");
 
-  // Real-world equivalents based on WHO 24h PM2.5 guideline (15 µg/m³)
-  // and Berkeley Earth rule of thumb (~22 µg/m³ PM2.5 ≈ 1 cigarette/day)
+  // Existing health-impact calculations retained.
   const whoMultiplier = Math.max(0.1, report.current.pm25 / 15).toFixed(1);
   const cigaretteEquivalent = (report.current.pm25 / 22).toFixed(1);
 
@@ -214,7 +249,9 @@ export function AqiBanner({ report }: AqiBannerProps) {
     50,
     ...report.hourlyForecast.map((point) => point.usAqi),
   );
+
   const dayPeriods = getTimeOfDaySummary(report.hourlyForecast);
+
   const selectedPoint =
     selectedHourIndex !== null
       ? (report.hourlyForecast[selectedHourIndex] ?? null)
@@ -251,237 +288,331 @@ export function AqiBanner({ report }: AqiBannerProps) {
     },
   ];
 
+  const familyCards = [
+    {
+      label: "Outdoor Walk",
+      icon: Footprints,
+      verdict: verdict.outdoor,
+    },
+    {
+      label: "Home Windows",
+      icon: DoorClosed,
+      verdict: verdict.windows,
+    },
+    {
+      label: "Face Mask",
+      icon: ShieldCheck,
+      verdict: verdict.mask,
+    },
+    {
+      label: "Air Purifier",
+      icon: Wind,
+      verdict: verdict.purifier,
+    },
+  ];
+
   return (
     <section
       aria-labelledby="aqi-banner-heading"
       aria-live="polite"
-      className={`rounded-xl border ${style.border} bg-zinc-900/90 p-5 sm:p-6`}
+      className="overflow-hidden rounded-2xl border border-[#E5EBE6] bg-white shadow-[0_4px_24px_rgba(32,43,37,0.035)]"
     >
-      {/* Top Header: Location, Clean AQI Headline & Risk Badge */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
-            <MapPin className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-            <span>{locationLabel}</span>
-          </div>
-          <div className="mt-1 flex flex-wrap items-baseline gap-2.5">
-            <h2
-              id="aqi-banner-heading"
-              className="text-3xl font-semibold tracking-tight text-zinc-100"
-            >
-              AQI {report.current.usAqi}
-            </h2>
-            <span className="text-xs text-zinc-500">(Global 0–500 scale)</span>
-          </div>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-300">
-            {report.severity.guidance}
-          </p>
-        </div>
-
-        <div
-          className={`inline-flex items-center gap-2 self-start rounded-full border px-3 py-1.5 text-xs font-medium ${style.badge}`}
-        >
-          <SeverityIcon level={report.severity.level} />
-          <span>
-            {style.labelPrefix}: {report.severity.category}
-          </span>
-        </div>
-      </div>
-
-      {/* Real-World Health Translation Strip */}
-      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-xs sm:text-sm">
-        <div className="flex items-center gap-2 text-zinc-200">
-          <Cigarette
-            className="h-4 w-4 text-rose-400 shrink-0"
-            aria-hidden="true"
-          />
-          <span>
-            Breathing this air all day ≈{" "}
-            <strong className="font-semibold text-zinc-100">
-              {cigaretteEquivalent} cigarettes
-            </strong>
-          </span>
-        </div>
-        <span className="hidden text-zinc-700 sm:inline" aria-hidden="true">
-          •
-        </span>
-        <div className="text-zinc-300">
-          <strong className="font-semibold text-zinc-100">
-            {whoMultiplier}×
-          </strong>{" "}
-          above the WHO 24-hour safe limit
-        </div>
-      </div>
-
-      {/* Instant Family Verdict Cards */}
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3">
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-            <Footprints className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Outdoor Walk</span>
-          </div>
-          <p className={`mt-1 text-sm font-semibold ${verdict.outdoor.tone}`}>
-            {verdict.outdoor.status}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3">
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-            <DoorClosed className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Home Windows</span>
-          </div>
-          <p className={`mt-1 text-sm font-semibold ${verdict.windows.tone}`}>
-            {verdict.windows.status}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3">
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Face Mask</span>
-          </div>
-          <p className={`mt-1 text-sm font-semibold ${verdict.mask.tone}`}>
-            {verdict.mask.status}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3">
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-            <Wind className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Air Purifier</span>
-          </div>
-          <p className={`mt-1 text-sm font-semibold ${verdict.purifier.tone}`}>
-            {verdict.purifier.status}
-          </p>
-        </div>
-      </div>
-
-      {/* Best Time Window Today */}
-      <div className="mt-4 flex flex-col gap-2 rounded-lg border border-emerald-900/50 bg-emerald-950/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
-          <Clock className="h-4 w-4 text-emerald-400" aria-hidden="true" />
-          <span>Cleanest 3-hour window to step out or air rooms:</span>
-        </div>
-        <span className="text-sm font-semibold text-emerald-300">
-          {report.safestWindow}
-        </span>
-      </div>
-
-      {/* Plain-English "What's in the Air?" Breakdown */}
-      <div className="mt-5">
-        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-          What&apos;s in the air right now?
-        </h3>
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {pollutants.map((item) => (
-            <div
-              key={item.techName}
-              className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <dt className="text-xs font-semibold text-zinc-200">
-                  {item.plainName}
-                </dt>
-                <span
-                  className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${item.status.className}`}
-                >
-                  {item.status.label}
-                </span>
-              </div>
-              <dd className="mt-1 text-xs text-zinc-400">{item.meaning}</dd>
-              <dd className="mt-2 font-mono text-[11px] text-zinc-500">
-                {item.techName}: {item.value}
-              </dd>
+      <div className="space-y-7 p-5 sm:p-7">
+        {/* AQI Overview */}
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-[#68756D]">
+              <MapPin className="h-4 w-4 text-[#237A57]" aria-hidden="true" />
+              <span>{locationLabel}</span>
             </div>
-          ))}
-        </dl>
-      </div>
 
-      {/* Interactive Color-Coded 24-Hour Air Quality Timeline */}
-      {report.hourlyForecast.length > 0 && (
-        <div className="mt-5">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="inline-flex items-center gap-1.5 font-medium text-zinc-200">
-              <Activity
-                className="h-3.5 w-3.5 text-zinc-400"
-                aria-hidden="true"
-              />
-              Today&apos;s Hour-by-Hour Air Quality (tap or hover a bar)
-            </span>
-            <span className="text-zinc-400">
-              {selectedPoint ? (
-                <span className="font-medium text-zinc-100">
-                  {formatHour12(selectedPoint.hourLabel)}: AQI{" "}
-                  {selectedPoint.usAqi} ({getAqiShortWord(selectedPoint.usAqi)})
-                </span>
-              ) : (
-                `Peak AQI today: ${peakAqi}`
-              )}
-            </span>
+            <div className="flex flex-wrap items-baseline gap-3">
+              <h2
+                id="aqi-banner-heading"
+                className="text-4xl font-semibold tracking-[-0.04em] text-[#202B25] sm:text-5xl"
+              >
+                {report.current.usAqi}
+              </h2>
+
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold text-[#202B25]">
+                  Air Quality Index
+                </p>
+                <p className="text-xs text-[#87938A]">Global 0–500 scale</p>
+              </div>
+            </div>
+
+            <p className="max-w-2xl text-sm leading-7 text-[#68756D]">
+              {report.severity.guidance}
+            </p>
           </div>
 
           <div
-            role="group"
-            aria-label="24-hour air quality timeline"
-            className="flex h-20 items-end gap-1 rounded-lg border border-zinc-800 bg-zinc-950/70 p-2.5"
+            className={`inline-flex w-fit items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold ${style.badge}`}
           >
-            {report.hourlyForecast.slice(0, 24).map((point, idx) => {
-              const heightPct = Math.max(
-                14,
-                Math.round((point.usAqi / peakAqi) * 100),
-              );
-              const isSelected = selectedHourIndex === idx;
+            <SeverityIcon level={report.severity.level} />
+            <span>
+              {style.labelPrefix}: {report.severity.category}
+            </span>
+          </div>
+        </div>
+
+        {/* Health Impact Strip */}
+        <div className="grid gap-3 rounded-xl border border-[#F1DDE0] bg-[#FFF8F8] p-4 sm:grid-cols-2 sm:items-center">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-rose-600">
+              <Cigarette className="h-4 w-4" aria-hidden="true" />
+            </div>
+
+            <div>
+              <p className="text-xs text-[#87938A]">
+                Illustrative cigarette equivalent
+              </p>
+              <p className="mt-1 text-sm font-semibold text-[#202B25]">
+                {cigaretteEquivalent} cigarettes
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 sm:border-l sm:border-[#F1DDE0] sm:pl-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-rose-600">
+              <Activity className="h-4 w-4" aria-hidden="true" />
+            </div>
+
+            <div>
+              <p className="text-xs text-[#87938A]">
+                Compared with WHO 24-hour PM2.5 guideline
+              </p>
+              <p className="mt-1 text-sm font-semibold text-[#202B25]">
+                {whoMultiplier}× the guideline value
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Family Recommendations */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-[#202B25]">
+              What should your family do?
+            </h3>
+            <p className="mt-1 text-xs text-[#87938A]">
+              Quick recommendations based on the current AQI category
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {familyCards.map((item) => {
+              const Icon = item.icon;
+
               return (
-                <button
-                  key={point.time}
-                  type="button"
-                  onClick={() => setSelectedHourIndex(idx)}
-                  onMouseEnter={() => setSelectedHourIndex(idx)}
-                  aria-label={`${formatHour12(point.hourLabel)}: AQI ${point.usAqi}, ${getAqiShortWord(point.usAqi)}`}
-                  className="flex h-full flex-1 items-end focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400"
+                <div
+                  key={item.label}
+                  className="rounded-xl border border-[#E5EBE6] bg-[#FAFCFA] p-4 transition-colors hover:border-[#CADBCF]"
                 >
-                  <span
-                    className={`block w-full rounded-t-sm transition-all ${getBarColorByAqi(
-                      point.usAqi,
-                    )} ${
-                      isSelected
-                        ? "opacity-100 ring-1 ring-white"
-                        : "opacity-75 hover:opacity-100"
-                    }`}
-                    style={{ height: `${heightPct}%` }}
-                  />
-                </button>
+                  <div className="flex items-center gap-2 text-[#68756D]">
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    <span className="text-xs font-medium">{item.label}</span>
+                  </div>
+
+                  <p
+                    className={`mt-3 text-sm font-semibold leading-5 ${item.verdict.tone}`}
+                  >
+                    {item.verdict.status}
+                  </p>
+                </div>
               );
             })}
           </div>
+        </div>
 
-          <div className="mt-1.5 flex justify-between text-[11px] text-zinc-500">
-            <span>12 AM</span>
-            <span>6 AM</span>
-            <span>12 PM</span>
-            <span>6 PM</span>
-            <span>11 PM</span>
+        {/* Cleanest Window */}
+        <div
+          className={`flex flex-col gap-3 rounded-xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between ${style.surface} ${style.border}`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white">
+              <Clock className={`h-4 w-4 ${style.text}`} aria-hidden="true" />
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-[#202B25]">
+                Cleanest 3-hour window
+              </p>
+              <p className="mt-0.5 text-xs text-[#68756D]">
+                Suggested time to step out or air rooms
+              </p>
+            </div>
           </div>
 
-          {/* Simple 4-Part Day Breakdown */}
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {dayPeriods.map((period) => (
+          <span className={`text-sm font-semibold ${style.text}`}>
+            {report.safestWindow}
+          </span>
+        </div>
+
+        {/* Pollutant Breakdown */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-[#202B25]">
+              What&apos;s in the air right now?
+            </h3>
+            <p className="mt-1 text-xs text-[#87938A]">
+              Understanding the main pollutants around you
+            </p>
+          </div>
+
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {pollutants.map((item) => (
               <div
-                key={period.label}
-                className="rounded-lg border border-zinc-800/80 bg-zinc-950/50 px-3 py-2 text-xs"
+                key={item.techName}
+                className="rounded-xl border border-[#E5EBE6] bg-white p-4 transition-shadow hover:shadow-sm"
               >
-                <p className="font-medium text-zinc-300">{period.label}</p>
-                <p className="text-[11px] text-zinc-500">{period.range}</p>
-                <p className="mt-1 font-semibold text-zinc-100">
-                  {period.avgAqi !== null
-                    ? `AQI ${period.avgAqi} · ${getAqiShortWord(period.avgAqi)}`
-                    : "—"}
-                </p>
+                <div className="flex items-start justify-between gap-2">
+                  <dt className="text-xs font-semibold leading-5 text-[#202B25]">
+                    {item.plainName}
+                  </dt>
+
+                  <span
+                    className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-semibold ${item.status.className}`}
+                  >
+                    {item.status.label}
+                  </span>
+                </div>
+
+                <dd className="mt-2 min-h-10 text-xs leading-5 text-[#68756D]">
+                  {item.meaning}
+                </dd>
+
+                <dd className="mt-3 border-t border-[#EEF1EE] pt-3 font-mono text-xs font-medium text-[#237A57]">
+                  {item.techName}: {item.value}
+                </dd>
               </div>
             ))}
-          </div>
+          </dl>
         </div>
-      )}
+
+        {/* Interactive 24-Hour Timeline */}
+        {report.hourlyForecast.length > 0 && (
+          <div className="space-y-4 border-t border-[#E5EBE6] pt-6">
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-2">
+                <Activity
+                  className="h-4 w-4 text-[#237A57]"
+                  aria-hidden="true"
+                />
+                <div>
+                  <h3 className="text-sm font-semibold text-[#202B25]">
+                    Hour-by-hour air quality
+                  </h3>
+                  <p className="mt-1 text-xs text-[#87938A]">
+                    Select a bar to explore the forecast
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-[#F5F8F5] px-3 py-2 text-xs font-medium text-[#68756D]">
+                {selectedPoint ? (
+                  <span className="text-[#202B25]">
+                    {formatHour12(selectedPoint.hourLabel)}: AQI{" "}
+                    {selectedPoint.usAqi} ·{" "}
+                    {getAqiShortWord(selectedPoint.usAqi)}
+                  </span>
+                ) : (
+                  `Peak AQI today: ${peakAqi}`
+                )}
+              </div>
+            </div>
+
+            <div
+              role="group"
+              aria-label="24-hour air quality timeline"
+              className="flex h-28 items-end gap-1 rounded-xl border border-[#E5EBE6] bg-[#FAFCFA] p-3"
+            >
+              {report.hourlyForecast.slice(0, 24).map((point, idx) => {
+                const heightPct = Math.max(
+                  14,
+                  Math.round((point.usAqi / peakAqi) * 100),
+                );
+
+                const isSelected = selectedHourIndex === idx;
+
+                return (
+                  <button
+                    key={point.time}
+                    type="button"
+                    onClick={() => setSelectedHourIndex(idx)}
+                    onMouseEnter={() => setSelectedHourIndex(idx)}
+                    aria-label={`${formatHour12(point.hourLabel)}: AQI ${point.usAqi}, ${getAqiShortWord(point.usAqi)}`}
+                    aria-pressed={isSelected}
+                    className="flex h-full flex-1 items-end rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#237A57] focus-visible:ring-offset-2"
+                  >
+                    <span
+                      className={`block w-full rounded-t-sm transition-all ${getBarColorByAqi(
+                        point.usAqi,
+                      )} ${
+                        isSelected
+                          ? "opacity-100 ring-2 ring-[#202B25]/20"
+                          : "opacity-70 hover:opacity-100"
+                      }`}
+                      style={{ height: `${heightPct}%` }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-between text-[11px] text-[#87938A]">
+              <span>12 AM</span>
+              <span>6 AM</span>
+              <span>12 PM</span>
+              <span>6 PM</span>
+              <span>11 PM</span>
+            </div>
+
+            {/* Time-of-Day Comparison */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-[#68756D]">
+                Average AQI by time of day
+              </h4>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {dayPeriods.map((period) => (
+                  <div
+                    key={period.label}
+                    className="rounded-xl border border-[#E5EBE6] bg-white p-3"
+                  >
+                    <p className="text-xs font-semibold text-[#202B25]">
+                      {period.label}
+                    </p>
+
+                    <p className="mt-1 text-[11px] text-[#87938A]">
+                      {period.range}
+                    </p>
+
+                    <p className="mt-3 text-sm font-semibold text-[#202B25]">
+                      {period.avgAqi !== null ? `AQI ${period.avgAqi}` : "—"}
+                    </p>
+
+                    {period.avgAqi !== null && (
+                      <p className="mt-1 text-[11px] font-medium text-[#68756D]">
+                        {getAqiShortWord(period.avgAqi)}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Data Source Note */}
+        <div className="border-t border-[#E5EBE6] pt-4">
+          <p className="text-[11px] leading-5 text-[#87938A]">
+            Air quality readings and hourly forecasts are model-based estimates
+            from Open-Meteo. AQI categories use the US AQI scale.
+          </p>
+        </div>
+      </div>
     </section>
   );
 }

@@ -20,59 +20,85 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
-        className={`${inter.className} min-h-screen bg-zinc-950 text-zinc-100`}
+        className={`${inter.className} min-h-screen bg-[#F7F9F5] text-[#24352D] antialiased`}
       >
+        {/* Skip Navigation */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-500 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-zinc-950"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-[#176B4D] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:outline-none focus:ring-2 focus:ring-[#237A57] focus:ring-offset-2"
         >
           Skip to main content
         </a>
 
         <div className="flex min-h-screen flex-col">
-          <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur">
-            <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+          {/* Header */}
+          <header className="sticky top-0 z-50 border-b border-[#E5EBE6] bg-white/90 backdrop-blur-xl">
+            <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">
+              {/* Brand */}
               <div className="flex items-center gap-3">
                 <span
                   aria-hidden="true"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-950/60 text-emerald-400"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#DCE9DF] bg-[#EAF3ED] text-[#237A57]"
                 >
-                  <Wind className="h-5 w-5" />
+                  <Wind className="h-5 w-5" strokeWidth={2} />
                 </span>
-                <div>
-                  <p className="text-base font-semibold tracking-tight text-zinc-100">
+
+                <div className="flex flex-col">
+                  <p className="text-[17px] font-semibold tracking-tight text-[#24352D]">
                     VayuGuard
                   </p>
-                  <p className="text-xs text-zinc-400">
-                    Urban Air Quality &amp; Winter Smog Assistant
+                  <p className="hidden text-[11px] font-medium tracking-[0.08em] text-[#87938A] sm:block">
+                    URBAN AIR QUALITY ASSISTANT
                   </p>
                 </div>
               </div>
 
-              <span className="hidden rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs font-medium text-zinc-300 sm:inline-block">
-                Live Open-Meteo Telemetry + Gemini AI
-              </span>
+              {/* Technology Indicator */}
+              <div className="flex items-center gap-2 rounded-full border border-[#E5EBE6] bg-[#F7F9F5] px-3 py-2">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-[#36966B]"
+                />
+
+                <span className="text-[11px] font-medium text-[#68756D] sm:text-xs">
+                  <span className="hidden sm:inline">
+                    Open-Meteo
+                    <span className="mx-1.5 text-[#B8C2BA]">·</span>
+                    Gemini AI
+                  </span>
+                  <span className="sm:hidden">AI Powered</span>
+                </span>
+              </div>
             </div>
           </header>
 
+          {/* Main Content */}
           <main
             id="main-content"
-            className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6"
+            className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10"
           >
             {children}
           </main>
 
-          <footer className="border-t border-zinc-800/80 bg-zinc-950 py-6">
-            <div className="mx-auto flex max-w-5xl flex-col gap-2 px-4 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <p>
-                Air quality telemetry via Open-Meteo. Action plans generated
-                with Google Gemini.
-              </p>
-              <p>
-                Informational guidance only &mdash; consult a healthcare
-                professional for acute respiratory symptoms.
+          {/* Footer */}
+          <footer className="border-t border-[#E5EBE6] bg-white">
+            <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex items-center gap-2">
+                <Wind
+                  className="h-4 w-4 shrink-0 text-[#237A57]"
+                  aria-hidden="true"
+                />
+                <p className="text-xs leading-relaxed text-[#68756D]">
+                  Air quality telemetry via Open-Meteo. Action plans generated
+                  with Google Gemini.
+                </p>
+              </div>
+
+              <p className="max-w-xl text-xs leading-relaxed text-[#87938A] sm:text-right">
+                Informational guidance only — consult a healthcare professional
+                for acute respiratory symptoms.
               </p>
             </div>
           </footer>

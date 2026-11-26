@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -44,6 +45,7 @@ export default function HomePage() {
 
   const loadCityAqi = useCallback(async (rawCity: string) => {
     const trimmed = rawCity.trim();
+
     if (trimmed.length < 2) {
       setAqiError("Enter at least 2 characters for a city name.");
       return;
@@ -63,6 +65,7 @@ export default function HomePage() {
         `/api/aqi?city=${encodeURIComponent(trimmed)}`,
         { signal: controller.signal },
       );
+
       const data = (await response.json()) as
         | AirQualityReport
         | { error?: string };
@@ -72,6 +75,7 @@ export default function HomePage() {
           "error" in data && data.error
             ? data.error
             : "Unable to load air quality data for this location.";
+
         setAqiError(message);
         setAqiReport(null);
         return;
@@ -82,6 +86,7 @@ export default function HomePage() {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
+
       setAqiError("Network error while fetching live air quality telemetry.");
       setAqiReport(null);
     } finally {
@@ -101,6 +106,7 @@ export default function HomePage() {
           `/api/aqi?city=${encodeURIComponent("New Delhi")}`,
           { signal: controller.signal },
         );
+
         const data = (await response.json()) as
           | AirQualityReport
           | { error?: string };
@@ -112,6 +118,7 @@ export default function HomePage() {
             "error" in data && data.error
               ? data.error
               : "Unable to load air quality data for this location.";
+
           setAqiError(message);
           setAqiReport(null);
           return;
@@ -122,6 +129,7 @@ export default function HomePage() {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
+
         setAqiError("Network error while fetching live air quality telemetry.");
         setAqiReport(null);
       } finally {
@@ -182,11 +190,13 @@ export default function HomePage() {
           "error" in data && data.error
             ? data.error
             : "Could not generate an action plan right now.";
+
         setPlanError(message);
         return;
       }
 
       setPlanResult(data as PlanApiResponse);
+
       window.setTimeout(() => {
         planSectionRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
@@ -198,101 +208,133 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Intro & Location Search */}
-      <section aria-labelledby="hero-heading" className="space-y-4">
-        <div>
-          <h1
-            id="hero-heading"
-            className="text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl"
-          >
-            Navigate winter smog with clear, low-emission daily choices
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-            Check hyperlocal PM2.5 levels, find today&apos;s safest outdoor
-            window, and generate a tailored action plan showing both your
-            family&apos;s health protection and community emission savings.
-          </p>
-        </div>
+    <div className="space-y-10 sm:space-y-12">
 
-        <form
-          onSubmit={handleCitySearch}
-          role="search"
-          aria-label="Search city air quality"
-          className="flex flex-col gap-2.5 sm:flex-row"
-        >
-          <div className="relative flex-1">
-            <label htmlFor="city-search" className="sr-only">
-              Enter your city
-            </label>
-            <Search
-              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
-              aria-hidden="true"
-            />
-            <input
-              id="city-search"
-              type="text"
-              value={cityInput}
-              onChange={(e) => setCityInput(e.target.value)}
-              placeholder="Enter city (e.g., New Delhi, Noida, Panipat, London)"
-              autoComplete="address-level2"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 py-2.5 pl-10 pr-4 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-            />
+      {/* Premium Minimal Hero & Location Search */}
+      <section
+        aria-labelledby="hero-heading"
+        className="space-y-7"
+      >
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#DCE9DF] bg-[#EAF3ED] px-3 py-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#237A57]" />
+            <span className="text-[11px] font-semibold tracking-[0.12em] text-[#237A57]">
+              YOUR DAILY AIR QUALITY COMPANION
+            </span>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoadingAqi}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-700 bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isLoadingAqi ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                Checking...
-              </>
-            ) : (
-              "Check Air Quality"
-            )}
-          </button>
-        </form>
+          <div className="max-w-3xl space-y-3">
+            <h1
+              id="hero-heading"
+              className="text-3xl font-semibold leading-[1.2] tracking-[-0.04em] text-[#202B25] sm:text-4xl lg:text-[46px]"
+            >
+              Breathe smarter.
+              <br className="hidden sm:block" />
+              Make every day a little healthier.
+            </h1>
 
-        {/* Quick City Presets */}
-        <div
-          aria-label="Quick city presets"
-          className="flex flex-wrap items-center gap-2"
-        >
-          <span className="text-xs text-zinc-500">Quick select:</span>
-          {PRESET_CITIES.map((city) => {
-            const isActive =
-              aqiReport?.location.name.toLowerCase() === city.toLowerCase();
-            return (
-              <button
-                key={city}
-                type="button"
-                onClick={() => handlePresetSelect(city)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  isActive
-                    ? "border-emerald-500/70 bg-emerald-950/50 text-emerald-300"
-                    : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
-                }`}
-              >
-                {city}
-              </button>
-            );
-          })}
+            <p className="max-w-2xl text-sm leading-7 text-[#68756D] sm:text-base">
+              Understand the air around you, discover safer times to step
+              outdoors, and get practical recommendations tailored to your
+              everyday lifestyle.
+            </p>
+          </div>
+        </div>
+
+        {/* City Search */}
+        <div className="max-w-3xl space-y-3">
+          <form
+            onSubmit={handleCitySearch}
+            role="search"
+            aria-label="Search city air quality"
+            className="flex flex-col gap-2 rounded-2xl border border-[#E5EBE6] bg-white p-2 shadow-[0_4px_20px_rgba(32,43,37,0.04)] sm:flex-row"
+          >
+            <div className="relative flex-1">
+              <label htmlFor="city-search" className="sr-only">
+                Enter your city
+              </label>
+
+              <Search
+                className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#87938A]"
+                aria-hidden="true"
+              />
+
+              <input
+                id="city-search"
+                type="text"
+                value={cityInput}
+                onChange={(e) => setCityInput(e.target.value)}
+                placeholder="Search a city or location..."
+                autoComplete="address-level2"
+                className="h-12 w-full rounded-xl border-0 bg-transparent py-3 pl-12 pr-4 text-sm text-[#202B25] outline-none placeholder:text-[#A0AAA2] focus:ring-2 focus:ring-[#237A57]/20"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoadingAqi}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#237A57] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#1B6547] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoadingAqi ? (
+                <>
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                  Checking...
+                </>
+              ) : (
+                <>
+                  Check air quality
+                  <Search className="h-4 w-4" aria-hidden="true" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Quick City Presets */}
+          <div
+            aria-label="Quick city presets"
+            className="flex flex-wrap items-center gap-2"
+          >
+            <span className="mr-1 text-xs font-medium text-[#87938A]">
+              Explore:
+            </span>
+
+            {PRESET_CITIES.map((city) => {
+              const isActive =
+                aqiReport?.location.name.toLowerCase() === city.toLowerCase();
+
+              return (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => handlePresetSelect(city)}
+                  aria-pressed={isActive}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
+                    isActive
+                      ? "border-[#237A57] bg-[#EAF3ED] text-[#237A57]"
+                      : "border-[#E5EBE6] bg-white text-[#68756D] hover:border-[#B9D3C1] hover:bg-[#F5F9F5]"
+                  }`}
+                >
+                  {city}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* AQI Loading / Error / Report */}
+      {/* AQI Loading State */}
       {isLoadingAqi && (
         <div
           role="status"
           aria-live="polite"
-          className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6 text-sm text-zinc-400"
+          className="rounded-2xl border border-[#E5EBE6] bg-white p-6 text-sm text-[#68756D]"
         >
           <span className="inline-flex items-center gap-2">
             <Loader2
-              className="h-4 w-4 animate-spin text-emerald-400"
+              className="h-4 w-4 animate-spin text-[#237A57]"
               aria-hidden="true"
             />
             Fetching live PM2.5, PM10, and 24-hour forecast...
@@ -300,22 +342,24 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* AQI Error */}
       {aqiError && !isLoadingAqi && (
         <div
           role="alert"
-          className="flex flex-col gap-3 rounded-xl border border-rose-800/60 bg-rose-950/30 p-5 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-5 sm:flex-row sm:items-center sm:justify-between"
         >
-          <div className="flex items-start gap-2.5 text-sm text-rose-200">
+          <div className="flex items-start gap-2.5 text-sm text-rose-800">
             <AlertCircle
               className="mt-0.5 h-4 w-4 shrink-0"
               aria-hidden="true"
             />
             <span>{aqiError}</span>
           </div>
+
           <button
             type="button"
             onClick={() => void loadCityAqi(cityInput)}
-            className="inline-flex items-center gap-1.5 self-start rounded-lg border border-rose-700/60 bg-rose-950 px-3 py-1.5 text-xs font-medium text-rose-100 hover:bg-rose-900/60"
+            className="inline-flex items-center gap-1.5 self-start rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-100"
           >
             <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
             Retry
@@ -323,6 +367,7 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* AQI Report & Lifestyle Form */}
       {aqiReport && !isLoadingAqi && (
         <>
           <AqiBanner report={aqiReport} />
@@ -339,9 +384,12 @@ export default function HomePage() {
       {planError && (
         <div
           role="alert"
-          className="flex items-start gap-2.5 rounded-xl border border-rose-800/60 bg-rose-950/30 p-5 text-sm text-rose-200"
+          className="flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800"
         >
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <AlertCircle
+            className="mt-0.5 h-4 w-4 shrink-0"
+            aria-hidden="true"
+          />
           <span>{planError}</span>
         </div>
       )}
@@ -353,7 +401,8 @@ export default function HomePage() {
             plan={planResult.plan}
             city={aqiReport.location.name}
           />
-          <p className="text-right text-xs text-zinc-500">
+
+          <p className="text-right text-xs text-[#87938A]">
             Generated using{" "}
             <span className="font-mono">{planResult.model}</span> at{" "}
             {new Date(planResult.generatedAt).toLocaleTimeString()}

@@ -11,62 +11,74 @@ export function ImpactExplainer({ item, index }: ImpactExplainerProps) {
   const co2Saved = Number(item.estimatedCo2SavedKgPerWeek.toFixed(1));
 
   return (
-    <article className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 sm:p-5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <article className="rounded-2xl border border-[#E5EBE6] bg-white p-4 transition-colors hover:border-[#C8DCCB] sm:p-5">
+      {/* Action Heading */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-300"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#DCE9DE] bg-[#F0F7F1] text-xs font-semibold text-[#176B4D]"
           >
             {index + 1}
           </span>
-          <h3 className="text-base font-semibold text-zinc-100">
+
+          <h3 className="pt-0.5 text-base font-semibold leading-snug text-[#24352D]">
             {item.title}
           </h3>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-300">
-          <Clock className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
-          {item.timingOrFrequency}
+        <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-[#E5EBE6] bg-[#F7F9F5] px-3 py-1.5 text-xs font-medium text-[#68756D] sm:max-w-[45%]">
+          <Clock
+            className="h-3.5 w-3.5 shrink-0 text-[#87938A]"
+            aria-hidden="true"
+          />
+          <span>{item.timingOrFrequency}</span>
         </span>
       </div>
 
-      <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+      {/* Action Description */}
+      <p className="mt-4 text-sm leading-relaxed text-[#536158]">
         {item.action}
       </p>
 
       {/* Direct Impact Breakdown */}
-      <dl className="mt-4 grid grid-cols-1 gap-3 border-t border-zinc-800/80 pt-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-sky-900/50 bg-sky-950/20 p-3">
-          <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-sky-300">
+      <dl className="mt-5 grid grid-cols-1 gap-3 border-t border-[#E5EBE6] pt-4 sm:grid-cols-2">
+        {/* Personal Health Impact */}
+        <div className="rounded-xl border border-[#DCEAF3] bg-[#F1F7FB] p-3.5">
+          <dt className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[#2876A8]">
             <span className="inline-flex items-center gap-1.5">
-              <HeartPulse className="h-3.5 w-3.5" aria-hidden="true" />
+              <HeartPulse className="h-4 w-4" aria-hidden="true" />
               Personal Health Impact
             </span>
+
             {pm25Reduction > 0 && (
-              <span className="rounded bg-sky-950 px-1.5 py-0.5 text-[11px] font-semibold text-sky-200">
+              <span className="rounded-md bg-[#E0EDF6] px-2 py-1 text-[11px] font-semibold text-[#24648E]">
                 -{pm25Reduction}% PM2.5
               </span>
             )}
           </dt>
-          <dd className="mt-1.5 text-xs leading-relaxed text-zinc-300">
+
+          <dd className="mt-2 text-xs leading-relaxed text-[#536B7A]">
             {item.healthImpact}
           </dd>
         </div>
 
-        <div className="rounded-lg border border-emerald-900/50 bg-emerald-950/20 p-3">
-          <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">
+        {/* Community Emission Impact */}
+        <div className="rounded-xl border border-[#DCE9DE] bg-[#F0F7F1] p-3.5">
+          <dt className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[#176B4D]">
             <span className="inline-flex items-center gap-1.5">
-              <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
+              <Leaf className="h-4 w-4" aria-hidden="true" />
               Community Emission Impact
             </span>
+
             {co2Saved > 0 && (
-              <span className="rounded bg-emerald-950 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-200">
+              <span className="rounded-md bg-[#DDEEE0] px-2 py-1 text-[11px] font-semibold text-[#176B4D]">
                 -{co2Saved} kg CO₂e/wk
               </span>
             )}
           </dt>
-          <dd className="mt-1.5 text-xs leading-relaxed text-zinc-300">
+
+          <dd className="mt-2 text-xs leading-relaxed text-[#536B5D]">
             {item.emissionImpact}
           </dd>
         </div>

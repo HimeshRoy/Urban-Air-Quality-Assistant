@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRef, useState, type KeyboardEvent } from "react";
@@ -34,6 +35,7 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
       .reduce((sum, item) => sum + item.estimatedCo2SavedKgPerWeek, 0)
       .toFixed(1),
   );
+
   const maxPm25Reduction = Math.round(
     Math.max(0, ...allItems.map((item) => item.estimatedPm25ReductionPercent)),
   );
@@ -49,6 +51,7 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
     index: number,
   ) {
     let nextIndex: number | null = null;
+
     if (event.key === "ArrowRight") {
       nextIndex = (index + 1) % TABS.length;
     } else if (event.key === "ArrowLeft") {
@@ -68,6 +71,7 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
 
   async function handleCopyBrief() {
     const shareText = `Air Quality Action Brief (${city}):\n\n${plan.communityBrief}`;
+
     try {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
@@ -84,35 +88,42 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
       className="space-y-5"
     >
       {/* Risk Summary & Aggregate Impact */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/90 p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="rounded-2xl border border-[#E5EBE6] bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#E5F1E8] px-3 py-1.5 text-xs font-medium text-[#176B4D]">
+              <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+              Personalised air quality insights
+            </div>
+
             <h2
               id="action-plan-heading"
-              className="flex items-center gap-2 text-lg font-semibold text-zinc-100"
+              className="text-xl font-semibold tracking-tight text-[#24352D] sm:text-2xl"
             >
-              <ShieldAlert
-                className="h-5 w-5 text-emerald-400"
-                aria-hidden="true"
-              />
-              Personalized Smog Risk Assessment
+              Your Smog Risk Assessment
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+
+            <p className="mt-2 text-sm leading-relaxed text-[#68756D]">
               {plan.riskSummary}
             </p>
           </div>
 
           <div className="grid shrink-0 grid-cols-2 gap-3">
-            <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 px-4 py-3">
-              <p className="text-xs text-zinc-400">Est. Weekly Savings</p>
-              <p className="mt-1 flex items-center gap-1.5 text-lg font-semibold text-emerald-300">
-                <Leaf className="h-4 w-4" aria-hidden="true" />
+            <div className="min-w-0 rounded-xl border border-[#E5EBE6] bg-[#F7F9F5] px-4 py-3.5">
+              <p className="text-xs font-medium text-[#68756D]">
+                Est. Weekly Savings
+              </p>
+              <p className="mt-2 flex items-center gap-1.5 text-lg font-semibold text-[#176B4D]">
+                <Leaf className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {totalWeeklyCo2Kg} kg CO₂e
               </p>
             </div>
-            <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 px-4 py-3">
-              <p className="text-xs text-zinc-400">Peak Exposure Drop</p>
-              <p className="mt-1 text-lg font-semibold text-sky-300">
+
+            <div className="min-w-0 rounded-xl border border-[#E5EBE6] bg-[#F7F9F5] px-4 py-3.5">
+              <p className="text-xs font-medium text-[#68756D]">
+                Peak Exposure Drop
+              </p>
+              <p className="mt-2 text-lg font-semibold text-[#2876A8]">
                 Up to {maxPm25Reduction}%
               </p>
             </div>
@@ -120,15 +131,25 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
         </div>
       </div>
 
-      {/* WAI-ARIA Tabbed Action Plan */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/90 p-5 sm:p-6">
+      {/* Accessible Tabbed Action Plan */}
+      <div className="rounded-2xl border border-[#E5EBE6] bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-5">
+          <h3 className="text-lg font-semibold tracking-tight text-[#24352D]">
+            Your Action Plan
+          </h3>
+          <p className="mt-1 text-sm text-[#87938A]">
+            Practical steps to reduce exposure and make healthier choices.
+          </p>
+        </div>
+
         <div
           role="tablist"
           aria-label="Air quality action categories"
-          className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4"
+          className="flex flex-wrap gap-2 border-b border-[#E5EBE6] pb-4"
         >
           {TABS.map((tab, index) => {
             const isSelected = activeTab === tab.key;
+
             return (
               <button
                 key={tab.key}
@@ -143,13 +164,16 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
                 tabIndex={isSelected ? 0 : -1}
                 onClick={() => setActiveTab(tab.key)}
                 onKeyDown={(event) => handleTabKeyDown(event, index)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+                className={`rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#237A57] focus-visible:ring-offset-2 ${
                   isSelected
-                    ? "bg-emerald-500 text-zinc-950"
-                    : "border border-zinc-800 bg-zinc-950 text-zinc-300 hover:border-zinc-700 hover:text-zinc-100"
+                    ? "bg-[#176B4D] text-white shadow-sm"
+                    : "border border-[#E5EBE6] bg-white text-[#68756D] hover:border-[#B8D4C1] hover:bg-[#F7F9F5] hover:text-[#176B4D]"
                 }`}
               >
-                {tab.label} ({itemsByTab[tab.key].length})
+                {tab.label}
+                <span className="ml-1.5 opacity-75">
+                  ({itemsByTab[tab.key].length})
+                </span>
               </button>
             );
           })}
@@ -160,7 +184,7 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
           role="tabpanel"
           aria-labelledby={`tab-${activeTab}`}
           tabIndex={0}
-          className="mt-5 space-y-4 focus-visible:outline-none"
+          className="mt-5 space-y-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#237A57] focus-visible:ring-offset-2"
         >
           {itemsByTab[activeTab].map((item, idx) => (
             <ImpactExplainer
@@ -172,39 +196,56 @@ export function ActionPlanTabs({ plan, city }: ActionPlanTabsProps) {
         </div>
       </div>
 
-      {/* Community Shareable Smog Brief */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/90 p-5 sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-zinc-100">
-            <Share2 className="h-4 w-4 text-emerald-400" aria-hidden="true" />
-            Community Smog Brief (WhatsApp / RWA Ready)
-          </h3>
+      {/* Community Shareable Brief */}
+      <div className="rounded-2xl border border-[#E5EBE6] bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E5F1E8]">
+                <Share2
+                  className="h-4 w-4 text-[#176B4D]"
+                  aria-hidden="true"
+                />
+              </div>
+
+              <div>
+                <h3 className="text-base font-semibold text-[#24352D]">
+                  Community Smog Brief
+                </h3>
+                <p className="text-xs text-[#87938A]">
+                  Ready to share with WhatsApp groups and RWAs
+                </p>
+              </div>
+            </div>
+          </div>
 
           <button
             type="button"
             onClick={handleCopyBrief}
-            className="inline-flex items-center gap-2 self-start rounded-lg border border-zinc-700 bg-zinc-950 px-3.5 py-2 text-xs font-medium text-zinc-200 transition-colors hover:border-emerald-500/60 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-[#DCE7DE] bg-[#F7F9F5] px-4 py-2.5 text-sm font-medium text-[#176B4D] transition-colors hover:border-[#A9CBB4] hover:bg-[#E5F1E8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#237A57] focus-visible:ring-offset-2 sm:self-auto"
           >
             {copied ? (
               <>
                 <Check
-                  className="h-3.5 w-3.5 text-emerald-400"
+                  className="h-4 w-4"
                   aria-hidden="true"
                 />
-                Copied to Clipboard
+                Copied!
               </>
             ) : (
               <>
-                <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                <Copy className="h-4 w-4" aria-hidden="true" />
                 Copy Brief
               </>
             )}
           </button>
         </div>
 
-        <p className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/70 p-4 text-sm leading-relaxed text-zinc-300">
-          {plan.communityBrief}
-        </p>
+        <div className="mt-4 rounded-xl border border-[#E5EBE6] bg-[#F7F9F5] p-4 sm:p-5">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-[#536158]">
+            {plan.communityBrief}
+          </p>
+        </div>
       </div>
     </section>
   );
